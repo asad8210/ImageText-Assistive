@@ -106,11 +106,12 @@ def process():
 
     threading.Thread(target=save_tts_audio, args=(extracted_text, gtts_lang, audio_path)).start()
 
-    return render_template('result.html',
+    return render_template('index.html',
                            original_image=f'uploads/{filename}',
                            extracted_text=extracted_text,
                            braille_text=braille_text,
                            audio_file=f'audio/{audio_filename}')
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
