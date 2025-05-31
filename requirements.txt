@@ -1,0 +1,7 @@
+Flask==2.3.2
+pillow==10.0.0
+pytesseract==0.3.10
+gTTS==2.3.0
+Werkzeug==2.3.7
+langdetect<=2
+gunicorn<=20

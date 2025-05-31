@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image to Braille & Audio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Assistive Technology</h1>
+
+    <img src="{{ url_for('static', filename='images/WhatsApp Image 2025-05-30 at 16.24.25_e44f2172.jpg') }}" 
+         alt="Braille Script Image" class="preview-img" />
+
+    <form action="/process" method="post" enctype="multipart/form-data" class="upload-form">
+      <label for="image">Upload an Image:</label>
+      <input type="file" name="image" id="image" accept="image/*" required />
+      <button type="submit">Process Image</button>
+    </form>
+  </div>
+</body>
+</html>
