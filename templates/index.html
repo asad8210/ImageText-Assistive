@@ -1,23 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Image to Braille & Audio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistive ImageText</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="container">
     <h1>Assistive Technology</h1>
+    <img src="{{ url_for('static', filename='images/WhatsApp Image 2025-05-30 at 16.24.25_e44f2172.jpg') }}"
+      alt="Braille Script Image" class="preview-img" />
 
-    <img src="{{ url_for('static', filename='images/WhatsApp Image 2025-05-30 at 16.24.25_e44f2172.jpg') }}" 
-         alt="Braille Script Image" class="preview-img" />
-
-    <form action="/process" method="post" enctype="multipart/form-data" class="upload-form">
+    <form action="{{ url_for('index') }}" method="post" enctype="multipart/form-data" class="upload-form">
       <label for="image">Upload an Image:</label>
       <input type="file" name="image" id="image" accept="image/*" required />
       <button type="submit">Process Image</button>
     </form>
+
+    {% if original_image %}
+    <hr>
+    <h2>Result</h2>
+
+    <h3>Uploaded Image:</h3>
+    <img src="{{ url_for('static', filename=original_image) }}" class="preview-img" />
+
+    <h3>Extracted Text:</h3>
+    <p>{{ extracted_text }}</p>
+
+    <h3>Braille Text:</h3>
+    <pre>{{ braille_text }}</pre>
+
+    <h3>Audio:</h3>
+    <audio controls>
+      <source src="{{ url_for('static', filename=audio_file) }}" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+    {% endif %}
   </div>
 </body>
 </html>
