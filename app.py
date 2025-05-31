@@ -61,14 +61,9 @@ braille_map = {
     "P": "⠏", "Q": "⠟", "R": "⠗", "S": "⠎", "T": "⠞",
     "U": "⠥", "V": "⠧", "W": "⠺", "X": "⠭", "Y": "⠽", "Z": "⠵",
 }
-
-@lru_cache(maxsize=128)
+lru_cache(maxsize=128)
 def text_to_braille(text):
     return ''.join(braille_map.get(ch, ' ') for ch in text)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 def save_tts_audio(text, lang, path):
     try:
@@ -77,41 +72,45 @@ def save_tts_audio(text, lang, path):
     except Exception as e:
         print(f"[TTS ERROR] {e}")
 
-@app.route('/process', methods=['POST'])
-def process():
-    if 'image' not in request.files:
-        return redirect(url_for('index'))
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        if 'image' not in request.files or request.files['image'].filename == '':
+            return redirect(url_for('index'))
 
-    file = request.files['image']
-    if file.filename == '':
-        return redirect(url_for('index'))
+        file = request.files['image']
+        filename = secure_filename(file.filename)
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(image_path)
 
-    filename = secure_filename(file.filename)
-    image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(image_path)
+        # OCR
+        img = Image.open(image_path).convert("RGB")
+        extracted_text = pytesseract.image_to_string(img, lang='hin+eng')
 
-    image = Image.open(image_path).convert('RGB')
-    extracted_text = pytesseract.image_to_string(image, lang='hin+eng')
+        # Language detection
+        try:
+            detected_lang = detect(extracted_text)
+        except:
+            detected_lang = 'en'
+        gtts_lang = 'hi' if detected_lang == 'hi' else 'en'
 
-    try:
-        detected_lang = detect(extracted_text)
-    except:
-        detected_lang = 'en'
-    gtts_lang = 'hi' if detected_lang == 'hi' else 'en'
+        # Braille conversion
+        braille_text_body = text_to_braille(extracted_text)
+        braille_prefix = '⠰⠓ ' if gtts_lang == 'hi' else '⠰⠑ '
+        braille_text = braille_prefix + braille_text_body
 
-    braille_text = ('⠰⠓ ' if gtts_lang == 'hi' else '⠰⠑ ') + text_to_braille(extracted_text)
+        # Audio generation in background
+        audio_filename = filename.rsplit('.', 1)[0] + '.mp3'
+        audio_path = os.path.join(app.config['AUDIO_FOLDER'], audio_filename)
+        tts_thread = threading.Thread(target=save_tts_audio, args=(extracted_text, gtts_lang, audio_path))
+        tts_thread.start()
 
-    audio_filename = filename.rsplit('.', 1)[0] + '.mp3'
-    audio_path = os.path.join(app.config['AUDIO_FOLDER'], audio_filename)
-
-    threading.Thread(target=save_tts_audio, args=(extracted_text, gtts_lang, audio_path)).start()
-
-    return render_template('index.html',
-                           original_image=f'uploads/{filename}',
-                           extracted_text=extracted_text,
-                           braille_text=braille_text,
-                           audio_file=f'audio/{audio_filename}')
+        return render_template('index.html',
+                               original_image=f'uploads/{filename}',
+                               extracted_text=extracted_text,
+                               braille_text=braille_text,
+                               audio_file=f'audio/{audio_filename}')
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
