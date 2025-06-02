@@ -30,9 +30,11 @@
     <p>{{ extracted_text }}</p>
 
     <h3>Braille Text:</h3>
-    <pre>{{ braille_text }}</pre>
+    <div class="braille-container">
+      <pre>{{ braille_text }}</pre>
+    </div>
 
-    <h2>Audio:</h2>
+    <h3>Audio:</h3>
     <audio controls>
       <source src="{{ url_for('static', filename=audio_file) }}" type="audio/mpeg">
       Your browser does not support the audio element.
@@ -40,4 +42,5 @@
     {% endif %}
   </div>
 </body>
+
 </html>
