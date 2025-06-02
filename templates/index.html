@@ -7,22 +7,29 @@
   <title>Assistive ImageText</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
   <div class="container">
     <h1>Assistive Technology</h1>
     <img src="{{ url_for('static', filename='images/WhatsApp Image 2025-05-30 at 16.24.25_e44f2172.jpg') }}"
       alt="Braille Script Image" class="preview-img" />
 
-    <form action="{{ url_for('index') }}" method="post" enctype="multipart/form-data" class="upload-form">
+    <form id="image-form" action="{{ url_for('index') }}" method="post" enctype="multipart/form-data" class="upload-form">
       <label for="image">Upload an Image:</label>
       <input type="file" name="image" id="image" accept="image/*" required />
       <button type="submit">Process Image</button>
     </form>
 
+    <div id="upload-status">
+      <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+      </div>
+      <p id="speed-text"></p>
+    </div>
+
     {% if original_image %}
     <hr>
     <h2>Result</h2>
-
     <h3>Uploaded Image:</h3>
     <img src="{{ url_for('static', filename=original_image) }}" class="preview-img" />
 
@@ -41,6 +48,58 @@
     </audio>
     {% endif %}
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('image-form');
+      const progressBar = document.getElementById('progress-bar');
+      const uploadStatus = document.getElementById('upload-status');
+      const speedText = document.getElementById('speed-text');
+
+      form.addEventListener('submit', function (e) {
+        // Show progress bar when form submitted
+        uploadStatus.style.display = 'block';
+        progressBar.style.width = '0%';
+        speedText.textContent = '';
+
+        const startTime = new Date().getTime();
+
+        // Create new XMLHttpRequest to track upload progress
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = function (event) {
+          if (event.lengthComputable) {
+            const percent = (event.loaded / event.total) * 100;
+            progressBar.style.width = percent.toFixed(2) + '%';
+
+            const elapsedTime = (new Date().getTime() - startTime) / 1000;
+            const speed = (event.loaded / 1024 / elapsedTime).toFixed(2); // KB/s
+            speedText.textContent = `Upload Speed: ${speed} KB/s`;
+          }
+        };
+
+        xhr.onload = function () {
+          // Hide progress bar after upload
+          uploadStatus.style.display = 'none';
+          // After upload completes, submit the form normally to reload page & show results
+          if (xhr.status === 200) {
+            form.submit();
+          } else {
+            alert('Upload failed, please try again.');
+          }
+        };
+
+        xhr.onerror = function () {
+          uploadStatus.style.display = 'none';
+          alert('Upload error occurred.');
+        };
+
+        xhr.open(form.method, form.action);
+        xhr.send(new FormData(form));
+        e.preventDefault();
+      });
+    });
+  </script>
 </body>
 
 </html>
