@@ -7,6 +7,7 @@ from gtts import gTTS
 from langdetect import detect
 import threading
 from functools import lru_cache
+import time
 
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['AUDIO_FOLDER'] = AUDIO_FOLDER
+
 
 # Braille character map for English and Hindi
 braille_map = {
@@ -67,6 +69,7 @@ def text_to_braille(text):
 
 def save_tts_audio(text, lang, path):
     try:
+
         tts = gTTS(text=text, lang=lang)
         tts.save(path)
     except Exception as e:
@@ -99,18 +102,33 @@ def index():
         braille_prefix = '⠰⠓ ' if gtts_lang == 'hi' else '⠰⠑ '
         braille_text = braille_prefix + braille_text_body
 
-        # Audio generation in background
+        # Convert to audio
+        tts = gTTS(text=extracted_text, lang=gtts_lang)
         audio_filename = filename.rsplit('.', 1)[0] + '.mp3'
         audio_path = os.path.join(app.config['AUDIO_FOLDER'], audio_filename)
-        tts_thread = threading.Thread(target=save_tts_audio, args=(extracted_text, gtts_lang, audio_path))
-        tts_thread.start()
+        tts.save(audio_path)
 
         return render_template('index.html',
-                               original_image=f'uploads/{filename}',
-                               extracted_text=extracted_text,
-                               braille_text=braille_text,
-                               audio_file=f'audio/{audio_filename}')
+                            original_image=f'uploads/{filename}',
+                            extracted_text=extracted_text,
+                            braille_text=braille_text,
+                            audio_file=f'audio/{audio_filename}'
+                            )
     return render_template('index.html')
+    
+
+def delete_files_later(image_path, audio_path, delay=60):  # 600 seconds = 10 minutes
+    def delete():
+        time.sleep(delay)
+        try:
+            if os.path.exists(image_path):
+                os.remove(image_path)
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            print(f"Deleted: {image_path} and {audio_path}")
+        except Exception as e:
+            print(f"Error deleting files: {e}")
+    threading.Thread(target=delete).start()
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
