@@ -75,9 +75,9 @@ h1 {
 }
 
 .braille-container {
-  width: 90vw; /* Fit to mobile width */
-  max-width: 300px; /* Optional max limit */
-  height: 400px; /* Fixed height to make it square-ish */
+  width: 100vw; /* Fit to mobile width */
+  max-width: 280px; /* Optional max limit */
+  height: 300px; /* Fixed height to make it square-ish */
   overflow: auto; /* Enable scroll if content overflows */
   border: 3px solid #333; /* Visible square border */
   border-radius: 10px; /* Rounded corners (optional) */
