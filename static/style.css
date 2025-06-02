@@ -1,5 +1,5 @@
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #f2f4f8;
   margin: 0;
   padding: 0;
@@ -69,11 +69,23 @@ h1 {
 }
 
 .braille {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   letter-spacing: 2px;
   font-size: 1.2rem;
 }
 
+.braille-container {
+  width: 90vw; /* Fit to mobile width */
+  max-width: 400px; /* Optional max limit */
+  height: 400px; /* Fixed height to make it square-ish */
+  overflow: auto; /* Enable scroll if content overflows */
+  border: 3px solid #333; /* Visible square border */
+  border-radius: 10px; /* Rounded corners (optional) */
+  padding: 10px;
+  background-color: #f9f9f9; /* Light background */
+  font-size: 1.2em;
+  margin: auto; /* Center on screen */
+}
 audio {
   margin-top: 10px;
   width: 100%;
