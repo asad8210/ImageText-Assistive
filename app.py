@@ -63,17 +63,29 @@ braille_map = {
     "P": "⠏", "Q": "⠟", "R": "⠗", "S": "⠎", "T": "⠞",
     "U": "⠥", "V": "⠧", "W": "⠺", "X": "⠭", "Y": "⠽", "Z": "⠵",
 }
-lru_cache(maxsize=128)
+@lru_cache(maxsize=128)
 def text_to_braille(text):
     return ''.join(braille_map.get(ch, ' ') for ch in text)
 
 def save_tts_audio(text, lang, path):
     try:
-
         tts = gTTS(text=text, lang=lang)
         tts.save(path)
     except Exception as e:
         print(f"[TTS ERROR] {e}")
+
+def delete_files_later(image_path, audio_path, delay=600):
+    def delete():
+        time.sleep(delay)
+        try:
+            if os.path.exists(image_path):
+                os.remove(image_path)
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            print(f"Deleted files: {image_path}, {audio_path}")
+        except Exception as e:
+            print(f"File delete error: {e}")
+    threading.Thread(target=delete).start()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -97,38 +109,26 @@ def index():
             detected_lang = 'en'
         gtts_lang = 'hi' if detected_lang == 'hi' else 'en'
 
-        # Braille conversion
-        braille_text_body = text_to_braille(extracted_text)
+        # Braille translation
+        braille_body = text_to_braille(extracted_text)
         braille_prefix = '⠰⠓ ' if gtts_lang == 'hi' else '⠰⠑ '
-        braille_text = braille_prefix + braille_text_body
+        braille_text = braille_prefix + braille_body
 
-        # Convert to audio
-        tts = gTTS(text=extracted_text, lang=gtts_lang)
+        # TTS save
         audio_filename = filename.rsplit('.', 1)[0] + '.mp3'
         audio_path = os.path.join(app.config['AUDIO_FOLDER'], audio_filename)
-        tts.save(audio_path)
+        save_tts_audio(extracted_text, gtts_lang, audio_path)
+
+        # Clean up later
+        delete_files_later(image_path, audio_path)
 
         return render_template('index.html',
-                            original_image=f'uploads/{filename}',
-                            extracted_text=extracted_text,
-                            braille_text=braille_text,
-                            audio_file=f'audio/{audio_filename}'
-                            )
-    return render_template('index.html')
-    
+                               original_image=f'uploads/{filename}',
+                               extracted_text=extracted_text,
+                               braille_text=braille_text,
+                               audio_file=f'audio/{audio_filename}')
 
-def delete_files_later(image_path, audio_path, delay=60):  # 600 seconds = 10 minutes
-    def delete():
-        time.sleep(delay)
-        try:
-            if os.path.exists(image_path):
-                os.remove(image_path)
-            if os.path.exists(audio_path):
-                os.remove(audio_path)
-            print(f"Deleted: {image_path} and {audio_path}")
-        except Exception as e:
-            print(f"Error deleting files: {e}")
-    threading.Thread(target=delete).start()
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
