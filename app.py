@@ -74,19 +74,6 @@ def save_tts_audio(text, lang, path):
     except Exception as e:
         print(f"[TTS ERROR] {e}")
 
-def delete_files_later(image_path, audio_path, delay=600):
-    def delete():
-        time.sleep(delay)
-        try:
-            if os.path.exists(image_path):
-                os.remove(image_path)
-            if os.path.exists(audio_path):
-                os.remove(audio_path)
-            print(f"Deleted files: {image_path}, {audio_path}")
-        except Exception as e:
-            print(f"File delete error: {e}")
-    threading.Thread(target=delete).start()
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -119,9 +106,6 @@ def index():
         audio_path = os.path.join(app.config['AUDIO_FOLDER'], audio_filename)
         save_tts_audio(extracted_text, gtts_lang, audio_path)
 
-        # Clean up later
-        delete_files_later(image_path, audio_path)
-
         return render_template('index.html',
                                original_image=f'uploads/{filename}',
                                extracted_text=extracted_text,
@@ -129,6 +113,6 @@ def index():
                                audio_file=f'audio/{audio_filename}')
 
     return render_template('index.html')
-
+    
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
