@@ -11,15 +11,19 @@
 <body>
   <div class="container">
     <h1>Assistive Technology</h1>
+
+    <!-- Default Image -->
     <img src="{{ url_for('static', filename='images/WhatsApp Image 2025-05-30 at 16.24.25_e44f2172.jpg') }}"
       alt="Braille Script Image" class="preview-img" />
 
+    <!-- Upload Form -->
     <form id="image-form" action="{{ url_for('index') }}" method="post" enctype="multipart/form-data" class="upload-form">
       <label for="image">Upload an Image:</label>
       <input type="file" name="image" id="image" accept="image/*" required />
       <button type="submit">Process Image</button>
     </form>
 
+    <!-- Upload Progress -->
     <div id="upload-status">
       <div id="progress-bar-container">
         <div id="progress-bar"></div>
@@ -27,25 +31,34 @@
       <p id="speed-text"></p>
     </div>
 
-    {% if original_image %}
-    <hr>
-    <h2>Result</h2>
-    <h3>Uploaded Image:</h3>
-    <img src="{{ url_for('static', filename=original_image) }}" class="preview-img" />
-
-    <h3>Extracted Text:</h3>
-    <p>{{ extracted_text }}</p>
-
-    <h3>Braille Text:</h3>
-    <div class="braille-container">
-      <pre>{{ braille_text }}</pre>
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" style="display: none; text-align: center; padding: 1rem;">
+      <p><strong>Processing...</strong></p>
+      <img src="{{ url_for('static', filename='images/spinner.gif') }}" alt="Loading..." style="width: 50px;">
     </div>
 
-    <h3>Audio:</h3>
-    <audio controls>
-      <source src="{{ url_for('static', filename=audio_file) }}" type="audio/mpeg">
-      Your browser does not support the audio element.
-    </audio>
+    {% if original_image %}
+    <div class="result-section">
+      <hr>
+      <h2>Result</h2>
+
+      <h3>Uploaded Image:</h3>
+      <img src="{{ url_for('static', filename=original_image) }}" class="preview-img" />
+
+      <h3>Extracted Text:</h3>
+      <div class="output-box">{{ extracted_text }}</div>
+
+      <h3>Braille Text:</h3>
+      <div class="braille-container braille">
+        <pre>{{ braille_text }}</pre>
+      </div>
+
+      <h3>Audio:</h3>
+      <audio controls>
+        <source src="{{ url_for('static', filename=audio_file) }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+    </div>
     {% endif %}
   </div>
 
@@ -55,48 +68,53 @@
       const progressBar = document.getElementById('progress-bar');
       const uploadStatus = document.getElementById('upload-status');
       const speedText = document.getElementById('speed-text');
+      const spinner = document.getElementById('loading-spinner');
 
       form.addEventListener('submit', function (e) {
-        // Show progress bar when form submitted
+        e.preventDefault();
+
         uploadStatus.style.display = 'block';
         progressBar.style.width = '0%';
         speedText.textContent = '';
+        spinner.style.display = 'none';
 
-        const startTime = new Date().getTime();
-
-        // Create new XMLHttpRequest to track upload progress
+        const formData = new FormData(form);
         const xhr = new XMLHttpRequest();
+        const startTime = new Date().getTime();
 
         xhr.upload.onprogress = function (event) {
           if (event.lengthComputable) {
             const percent = (event.loaded / event.total) * 100;
             progressBar.style.width = percent.toFixed(2) + '%';
-
             const elapsedTime = (new Date().getTime() - startTime) / 1000;
-            const speed = (event.loaded / 1024 / elapsedTime).toFixed(2); // KB/s
+            const speed = (event.loaded / 1024 / elapsedTime).toFixed(2);
             speedText.textContent = `Upload Speed: ${speed} KB/s`;
           }
         };
 
         xhr.onload = function () {
-          // Hide progress bar after upload
           uploadStatus.style.display = 'none';
-          // After upload completes, submit the form normally to reload page & show results
+          spinner.style.display = 'block';
+
           if (xhr.status === 200) {
-            form.submit();
+            document.open();
+            document.write(xhr.responseText);
+            document.close();
           } else {
-            alert('Upload failed, please try again.');
+            spinner.style.display = 'none';
+            alert('Upload failed. Please try again.');
           }
         };
 
         xhr.onerror = function () {
           uploadStatus.style.display = 'none';
-          alert('Upload error occurred.');
+          spinner.style.display = 'none';
+          alert('Network error. Please check your connection.');
         };
 
-        xhr.open(form.method, form.action);
-        xhr.send(new FormData(form));
-        e.preventDefault();
+        xhr.open('POST', form.action, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send(formData);
       });
     });
   </script>
