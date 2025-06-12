@@ -75,6 +75,7 @@ h1 {
   color: #555;
   text-align: center;
 }
+
 .result-section {
   margin-top: 30px;
 }
@@ -84,6 +85,7 @@ h1 {
   height: auto;
   border: 1px solid #ddd;
   border-radius: 4px;
+  margin-top: 15px;
 }
 
 .output-box {
@@ -102,17 +104,18 @@ h1 {
 }
 
 .braille-container {
-  width: 100vw; /* Fit to mobile width */
-  max-width: 280px; /* Optional max limit */
-  height: 300px; /* Fixed height to make it square-ish */
-  overflow: auto; /* Enable scroll if content overflows */
-  border: 3px solid #333; /* Visible square border */
-  border-radius: 10px; /* Rounded corners (optional) */
+  width: 100vw;
+  max-width: 280px;
+  height: 300px;
+  overflow: auto;
+  border: 3px solid #333;
+  border-radius: 10px;
   padding: 10px;
-  background-color: #f9f9f9; /* Light background */
+  background-color: #f9f9f9;
   font-size: 1.2em;
-  margin: auto; /* Center on screen */
+  margin: auto;
 }
+
 audio {
   margin-top: 10px;
   width: 100%;
