@@ -5,9 +5,7 @@ from PIL import Image
 import pytesseract
 from gtts import gTTS
 from langdetect import detect
-import threading
 from functools import lru_cache
-import time
 
 app = Flask(__name__)
 
@@ -113,6 +111,6 @@ def index():
                                audio_file=f'audio/{audio_filename}')
 
     return render_template('index.html')
-    
+
 if __name__ == '__main__':
-    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, host="0.0.0.0", port=5000)
